@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Klassenauswiel LMRL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        :root {
+            --lmrl-bg-orange: #d96528;
+            --lmrl-bg-gradient: linear-gradient(135deg, #d96528 0%, #c75b24 100%);
+            --text-dark: #333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px; 
+            text-align: center; 
+            background: var(--lmrl-bg-gradient);
+            background-attachment: fixed;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .main-card {
+            background-color: #fff;
+            padding: 30px;
+            padding-top: 10px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .logo-img { width: 80px; height: auto; }
+
+        h1 {
+            color: var(--text-dark);
+            margin-top: 30px;
+            margin-bottom: 25px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 10px;
+            z-index: 1000;
+            padding-bottom: 10px;
+            background: white;
+        }
+        
+        .pause-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            font-weight: bold;
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* Farbe für aktiven PAUS Button */
+        .pause-btn.active-class {
+            background-color: #ff9800 !important;
+            color: #000 !important;
+            transform: scale(0.98);
+            box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+        }
+
+        #container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        button:not(.pause-btn) {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 15px 5px; 
+            width: 160px; 
+            cursor: pointer; 
+            border: none;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            color: #444;
+        }
+
+        .grade-7 { background: linear-gradient(to bottom right, #e3f2fd, #bbdefb); border-left: 5px solid #2196F3; }
+        .grade-6 { background: linear-gradient(to bottom right, #e0f2f1, #b2dfdb); border-left: 5px solid #009688; }
+        .grade-5 { background: linear-gradient(to bottom right, #f1f8e9, #dcedc8); border-left: 5px solid #8bc34a; }
+        .grade-4 { background: linear-gradient(to bottom right, #fffde7, #fff9c4); border-left: 5px solid #fbc02d; }
+        .grade-3 { background: linear-gradient(to bottom right, #fff3e0, #ffe0b2); border-left: 5px solid #ff9800; }
+        .grade-2 { background: linear-gradient(to bottom right, #fbe9e7, #ffccbc); border-left: 5px solid #ff5722; }
+        .grade-1 { background: linear-gradient(to bottom right, #f3e5f5, #e1bee7); border-left: 5px solid #9c27b0; }
+        .grade-default { background: #eee; border-left: 5px solid #999; }
+
+        /* Normaler Klassen-Button wenn aktiv */
+        .active-class:not(.pause-btn) { 
+            background: #333 !important; 
+            color: #fff !important;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .date-header {
+            width: 100%;
+            text-align: left;
+            margin-top: 40px;
+            margin-bottom: 10px;
+            color: #d96528;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="main-card">
+        <div class="logo-container">
+            <img src="https://www.lmrl.lu/wp-content/uploads/2018/07/cropped-20180725_LMRL_Logo_01-version-principale-1.png" alt="LMRL Logo" class="logo-img">
+        </div>
+
+        <h1>Conseils de Classe - Steierung</h1>
+        
+        <div class="sticky-header">
+            <button onclick="updateKlasse('PAUS', this)" class="pause-btn" id="pauseBtn">PAUS</button>
+        </div>
+
+        <div id="container"></div>
+
+    </div> <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDYkFrSKAKByU61neF875qi5ydohzMA1z8",
+        authDomain: "conseils-57672.firebaseapp.com",
+        databaseURL: "https://conseils-57672-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "conseils-57672",
+        storageBucket: "conseils-57672.firebasestorage.app",
+        messagingSenderId: "681830473734",
+        appId: "1:681830473734:web:e70c97cf8b76979e8a6387"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const klassenListe = [
+        "### Vendredi 20 mars 2026 (en présentiel)", "ACCU1 - 15:00", "ACCU2 - 15:20",
+        "### Lundi 23 mars 2026 (en présentiel)", "4C08 - 14:30", "4C09 - 14:55", "4C10 - 15:20", "4C01 - 15:45", "4C03 - 16:10",
+        "### Mardi 24 mars 2026 (en présentiel)", "7C01 - 14:30", "7C02 - 14:50", "7C03 - 15:10", "7C04 - 15:30", "7C05 - 15:50", "7C06 - 16:10", "7C07 - 16:30", "7C08 - 16:50", "7C09 - 17:10", "7C10 - 17:30",
+        "### Mercredi 25 mars 2026 (Online op Teams)", "6C01 - 08:00", "6C02 - 08:20", "6C03 - 08:40", "6C04 - 09:00", "6C05 - 09:20", "6C06 - 09:40", "6C07 - 10:00", "6C08 - 10:20", "6C09 - 10:40", "6C10 - 11:00", "5C01 - 14:00", "5C02 - 14:20", "5C03 - 14:40", "5C04 - 15:00", "5C05 - 15:20", "5C06 - 15:40", "5C07 - 16:00", "5C08 - 16:20", "5C09 - 16:40", "5C10 - 17:00",
+        "### Jeudi 26 mars 2026 (Online op Teams)", "3CB1/3CC3 - 08:00", "3CB2/3CC4 - 08:20", "3CC1 - 08:40", "3CC2 - 09:00", "3CD1 - 09:20", "3CD2 - 09:40", "3CD3 - 10:00", "3CG1 - 10:20", "3CE1 - 10:40", "2CD1 - 14:00", "2CD2 - 14:20", "2CD3/2CG2 - 14:40", "2CG1 - 15:00", "2CB1/2CC3 - 15:20", "2CC1 - 15:40", "2CC2 - 16:00", "2CE1 - 16:20",
+        "### Vendredi 27 mars 2026 (en présentiel)", "4C04 - 08:00", "4C05 - 08:25", "4C06 - 08:50", "4C07 - 09:15", "Conférence plénière - 10:15"
+      ];
+
+      const container = document.getElementById('container');
+
+      klassenListe.forEach(item => {
+        if (item.startsWith("###")) {
+            const ueberschrift = document.createElement('div');
+            ueberschrift.innerText = item.replace("### ", ""); 
+            ueberschrift.className = "date-header";
+            container.appendChild(ueberschrift);
+        } else {
+            const btn = document.createElement('button');
+            btn.innerText = item;
+            const firstChar = item.trim().charAt(0);
+            if (!isNaN(firstChar)) btn.classList.add('grade-' + firstChar);
+            else btn.classList.add('grade-default');
+            btn.onclick = function() { updateKlasse(item, this); };
+            container.appendChild(btn);
+        }
+      });
+
+      window.updateKlasse = function(klasse, btn) {
+          document.querySelectorAll('button').forEach(b => b.classList.remove('active-class'));
+          if(btn) btn.classList.add('active-class');
+
+          db.ref('aktuellerStatus').set({
+              text: klasse,
+              time: Date.now() 
+          }).catch((error) => {
+              console.error("Firebase Error: ", error);
+          });
+      }
+    </script>
+</body>
+</html>
